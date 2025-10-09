@@ -7,7 +7,7 @@ on:
     branches: ["**"]
 
 jobs:
-  # Build stage: prepare Python and install dependencies
+  # 1️⃣ Build stage
   build:
     runs-on: ubuntu-latest
     steps:
@@ -34,7 +34,7 @@ jobs:
           pip install -r requirements.txt
           echo "✅ Dependencies installed successfully"
 
-  # Test stage: run unit/integration tests
+  # 2️⃣ Test stage
   test:
     runs-on: ubuntu-latest
     needs: build
@@ -62,7 +62,7 @@ jobs:
           echo "🔗 Running integration tests..."
           pytest tests/integration/ -v --tb=short
 
-  # Coverage stage: run coverage and upload HTML report
+  # 3️⃣ Coverage stage
   coverage:
     runs-on: ubuntu-latest
     needs: test
@@ -91,7 +91,7 @@ jobs:
           name: coverage-html
           path: htmlcov
 
-  # Repository quality (lint) stage
+  # 4️⃣ Lint stage
   lint:
     runs-on: ubuntu-latest
     needs: coverage
@@ -115,7 +115,6 @@ jobs:
           pylint src/ --output-format=text > lint_report.txt || true
           echo "💾 Saved lint report to lint_report.txt"
 
-          # Enforce threshold (set to 7.0; increase to 8.0 for stricter rules)
           score_line=$(grep -E "rated at" lint_report.txt || true)
           score=$(echo "$score_line" | sed -n 's/.*rated at \([0-9.]*\)\/10.*/\1/p')
           echo "Pylint score: ${score:-not-found}"
@@ -130,7 +129,7 @@ jobs:
           name: lint-report
           path: lint_report.txt
 
-  # Formatting stage
+  # 5️⃣ Format stage
   format:
     runs-on: ubuntu-latest
     needs: lint
@@ -161,7 +160,7 @@ jobs:
       - name: Show black diff (if any)
         run: black src/ tests/ --diff || true
 
-  # Security stage: run bandit and upload JSON report
+  # 6️⃣ Security stage
   security:
     runs-on: ubuntu-latest
     needs: format
@@ -194,3 +193,19 @@ jobs:
         with:
           name: security-report
           path: security_report.json
+
+  # 7️⃣ Deploy stage
+  deploy:
+    runs-on: ubuntu-latest
+    needs: security
+    if: github.ref == 'refs/heads/main'  # deploy only on main branch
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy application
+        run: |
+          echo "🚀 Deploying application..."
+          # Example deploy command — replace this with your actual one
+          # e.g., Heroku, AWS, or Netlify
+          echo "✅ Deployment successful!"
