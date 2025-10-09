@@ -1,6 +1,6 @@
 import sys
 import click
-from calculator import add, subtract, multiply, divide, power, square_root
+from src.calculator import add, subtract, multiply, divide, power, square_root
 
 
 @click.command()
@@ -9,9 +9,7 @@ from calculator import add, subtract, multiply, divide, power, square_root
 @click.argument("num2", type=float, required=False)
 def calculate(operation, num1, num2=None):
     """Simple calculator CLI"""
-
     try:
-
         if operation == "add":
             result = add(num1, num2)
         elif operation == "subtract":
@@ -21,8 +19,16 @@ def calculate(operation, num1, num2=None):
         elif operation == "divide":
             result = divide(num1, num2)
         else:
-            click.echo(f"Unknown operation:{operation}")
+            click.echo(f"Unknown operation: {operation}")
             sys.exit(1)
+
+        if isinstance(result, float):
+            if result.is_integer():
+                click.echo(int(result))
+            else:
+                click.echo(f"{result:.2f}")
+        else:
+            click.echo(result)
 
     except ValueError as e:
         click.echo(f"Error: {e}")
